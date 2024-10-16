@@ -1,15 +1,11 @@
 import os
 import requests
-# import yfinance as yf
 from swarm import Swarm, Agent
-from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
 
-
 # Initialize Swarm client
-
 client = Swarm()
 
 # Load OpenWeatherMap API key from environment variable
@@ -19,8 +15,7 @@ if not API_KEY:
 
 BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
 
-
-# Fucntion to create Folders
+# Function to create Folders
 
 # Global arrays to store paths
 paths = {
@@ -29,14 +24,15 @@ paths = {
 }
 
 
-def create_project_folder(folder_name):
+def create_project_folder(folder_name, prompt):
     # Determine the project type based on the folder name
-    if 'react' in folder_name.lower():
+    if 'react' in prompt.lower():
         project_type = 'react_project'
-    elif 'python' in folder_name.lower():
+    elif 'python' in prompt.lower():
         project_type = 'python_project'
     else:
-        raise ValueError("Unsupported project type")
+        raise ValueError(
+            f"Unsupported project type for folder name: {folder_name}")
 
     # Create the new folder path
     location = paths[project_type]
@@ -45,12 +41,13 @@ def create_project_folder(folder_name):
     # Create the folder if it doesn't exist
     if not os.path.exists(new_folder_path):
         os.makedirs(new_folder_path)
-        return (f"Created folder: {new_folder_path}")
+        return f"Created folder: {new_folder_path}"
     else:
-        return (f"Folder already exists: {new_folder_path}")
-
+        return f"Folder already exists: {new_folder_path}"
 
 # Function to fetch real weather data
+
+
 def get_weather(location):
     print(f"Running weather function for {location}...")
 
@@ -81,7 +78,7 @@ def transfer_to_folder_assistant():
     return folder_agent
 
 
-# manager Agent
+# Manager Agent
 manager_agent = Agent(
     name="manager Assistant",
     instructions="You help users by directing them to the right assistant.",
@@ -104,9 +101,19 @@ folder_agent = Agent(
 
 print("Running manager Assistant for Weather...")
 
+# stream = client.run(
+#     agent=manager_agent,
+#     messages=[{"role": "user",
+#                "content": "can u create me a python project folder with the name COOOLSHIT"}],
+#     stream=True,
+# )
+# for chunk in stream:
+#     if chunk.choices[0].delta.content is not None:
+#         print(chunk.choices[0].delta.content, end="")
 response = client.run(
     agent=manager_agent,
     messages=[{"role": "user",
-               "content": "can u create me a react project folder with the name COOOLSHIT"}],
+               "content": "can u create me a python project folder with the name COOOLSHIT"}],
+
 )
 print(response.messages[-1]["content"])
