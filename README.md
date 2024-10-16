@@ -38,6 +38,7 @@ The script initializes a Swarm client and defines two agents: a manager agent an
 ### Key Functions
 
 - `get_weather(location)`: Fetches weather data for the specified location.
+- `create_project_folder(folderName, prompt)`: Created a new folder at your system based on the instruction
 - `transfer_to_weather_assistant()`: Transfers the user to the weather assistant.
 
 ### Example
