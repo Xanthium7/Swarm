@@ -19,9 +19,38 @@ if not API_KEY:
 
 BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
 
+
+# Fucntion to create Folders
+
+# Global arrays to store paths
+paths = {
+    "react_project": "C:\\Users\\ASUS\\OneDrive\\Desktop\\reactjs_prots",
+    "python_project": "C:\\Users\\ASUS\\OneDrive\\Desktop\\Python_projects",
+}
+
+
+def create_project_folder(folder_name):
+    # Determine the project type based on the folder name
+    if 'react' in folder_name.lower():
+        project_type = 'react_project'
+    elif 'python' in folder_name.lower():
+        project_type = 'python_project'
+    else:
+        raise ValueError("Unsupported project type")
+
+    # Create the new folder path
+    location = paths[project_type]
+    new_folder_path = os.path.join(location, folder_name)
+
+    # Create the folder if it doesn't exist
+    if not os.path.exists(new_folder_path):
+        os.makedirs(new_folder_path)
+        return (f"Created folder: {new_folder_path}")
+    else:
+        return (f"Folder already exists: {new_folder_path}")
+
+
 # Function to fetch real weather data
-
-
 def get_weather(location):
     print(f"Running weather function for {location}...")
 
@@ -47,11 +76,16 @@ def transfer_to_weather_assistant():
     return weather_agent
 
 
+def transfer_to_folder_assistant():
+    print("Transferring to Folder Assistant...")
+    return folder_agent
+
+
 # manager Agent
 manager_agent = Agent(
     name="manager Assistant",
     instructions="You help users by directing them to the right assistant.",
-    functions=[transfer_to_weather_assistant],
+    functions=[transfer_to_weather_assistant, transfer_to_folder_assistant],
 )
 
 # Weather Agent
@@ -61,10 +95,18 @@ weather_agent = Agent(
     functions=[get_weather],
 )
 
+# Folder Agent
+folder_agent = Agent(
+    name="Folder Assistant",
+    instructions="You create a new folder for the user based on the provided project name",
+    functions=[create_project_folder],
+)
+
 print("Running manager Assistant for Weather...")
 
 response = client.run(
     agent=manager_agent,
-    messages=[{"role": "user", "content": "What's the weather in Kochi?"}],
+    messages=[{"role": "user",
+               "content": "can u create me a react project folder with the name COOOLSHIT"}],
 )
 print(response.messages[-1]["content"])
