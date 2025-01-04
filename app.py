@@ -2,6 +2,7 @@ import os
 import requests
 from swarm import Swarm, Agent
 from dotenv import load_dotenv
+import subprocess
 
 load_dotenv()
 
@@ -68,6 +69,23 @@ def get_weather(location):
         return f"Could not get the weather for {location}. Please try again."
 
 
+def open_youtube(search_query):
+    print(f"Running YouTube function for {search_query}...")
+
+    try:
+        opera_path = "C:\\Users\\ASUS\\AppData\\Local\\Programs\\Opera GX\\opera.exe"
+        url = f"https://www.youtube.com/results?search_query={'+'.join(search_query.split())}"
+        subprocess.Popen([opera_path, url])
+        return "Opened YouTube in Opera GX."
+    except Exception as e:
+        return f"Failed to open YouTube: {str(e)}"
+
+
+def transfer_to_youtube_assistant():
+    print("Transferring to YouTube Assistant...")
+    return youtube_agent
+
+
 def transfer_to_weather_assistant():
     print("Transferring to Weather Assistant...")
     return weather_agent
@@ -82,7 +100,8 @@ def transfer_to_folder_assistant():
 manager_agent = Agent(
     name="manager Assistant",
     instructions="You help users by directing them to the right assistant.",
-    functions=[transfer_to_weather_assistant, transfer_to_folder_assistant],
+    functions=[transfer_to_weather_assistant,
+               transfer_to_folder_assistant, transfer_to_youtube_assistant],
 )
 
 # Weather Agent
@@ -99,21 +118,19 @@ folder_agent = Agent(
     functions=[create_project_folder],
 )
 
-print("Running manager Assistant for Weather...")
+# YouTube Agent
+youtube_agent = Agent(
+    name="YouTube Assistant",
+    instructions="You open YouTube and search for the user's query using Opera GX.",
+    functions=[open_youtube],
+)
 
-# stream = client.run(
-#     agent=manager_agent,
-#     messages=[{"role": "user",
-#                "content": "can u create me a python project folder with the name COOOLSHIT"}],
-#     stream=True,
-# )
-# for chunk in stream:
-#     if chunk.choices[0].delta.content is not None:
-#         print(chunk.choices[0].delta.content, end="")
+query = input("Enter your query: ")
 response = client.run(
+    model_override="gpt-4o-mini",
     agent=manager_agent,
     messages=[{"role": "user",
-               "content": "can u create me a python project folder with the name COOOLSHIT"}],
+               "content": query}],
 
 )
 print(response.messages[-1]["content"])
