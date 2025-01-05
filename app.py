@@ -16,7 +16,16 @@ if not API_KEY:
 
 BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
 
-# Function to create Folders
+
+APP_PATHS = {
+    "opera": "C:\\Users\\ASUS\\AppData\\Local\\Programs\\Opera GX\\opera.exe",
+    "chrome": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "spotify": "C:\\Users\\ASUS\\AppData\\Roaming\\Spotify\\Spotify.exe",
+    "vscode": "C:\\Users\\ASUS\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe",
+    "notepad": "C:\\Windows\\System32\\notepad.exe",
+    "whatsapp": "C:\\Program Files\\WindowsApps\\5319275A.WhatsAppDesktop_2.2450.6.0_x64__cv1g1gvanyjgm\\WhatsApp.exe",
+    "appflowy": "C:\\Program Files (x86)\\AppFlowy\\AppFlowy.exe",
+}
 
 # Global arrays to store paths
 paths = {
@@ -81,6 +90,15 @@ def open_youtube(search_query):
         return f"Failed to open YouTube: {str(e)}"
 
 
+def openApp(appName):
+    print(f"Opening {appName}...")
+    try:
+        subprocess.Popen(APP_PATHS[appName])
+        return f"Opened {appName}."
+    except Exception as e:
+        return f"Failed to open {appName}: {str(e)}"
+
+
 def transfer_to_youtube_assistant():
     print("Transferring to YouTube Assistant...")
     return youtube_agent
@@ -96,12 +114,17 @@ def transfer_to_folder_assistant():
     return folder_agent
 
 
+def transfer_to_app_assistant():
+    print("Transferring to App Assistant...")
+    return app_agent
+
+
 # Manager Agent
 manager_agent = Agent(
     name="manager Assistant",
     instructions="You help users by directing them to the right assistant.",
     functions=[transfer_to_weather_assistant,
-               transfer_to_folder_assistant, transfer_to_youtube_assistant],
+               transfer_to_folder_assistant, transfer_to_youtube_assistant, transfer_to_app_assistant],
 )
 
 # Weather Agent
@@ -125,12 +148,37 @@ youtube_agent = Agent(
     functions=[open_youtube],
 )
 
-query = input("Enter your query: ")
-response = client.run(
-    model_override="gpt-4o-mini",
-    agent=manager_agent,
-    messages=[{"role": "user",
-               "content": query}],
-
+app_agent = Agent(
+    name="App Assistant",
+    instructions='''
+    You are the App Assistant. Your role is to open applications based on the user's request.
+    
+    - When the user mentions "Opera GX", "Opera Browser", or "Opera", interpret the app name as "opera".
+    - When the user mentions "Google Chrome", "Chrome", or "Google", interpret the app name as "chrome".
+    - When the user mentions "Spotify", interpret the app name as "spotify".
+    - When the user mentions "Visual Studio Code", "VSCode", or "Code", interpret the app name as "vscode".
+    - When the user mentions "Notepad", interpret the app name as "notepad".
+    - When the user mentions "WhatsApp", interpret the app name as "whatsapp".
+    - When the user mentions "AppFlowy", interpret the app name as "appflowy".
+    
+    After standardizing the app name, use the openApp function to open the corresponding application.
+    
+    If the app name does not match any known applications, respond with "Unsupported app name."
+    ''',
+    functions=[openApp],
 )
-print(response.messages[-1]["content"])
+
+
+while True:
+
+    query = input("Enter your query: ")
+    if query.lower() == "exit":
+        break
+    response = client.run(
+        model_override="gpt-4o-mini",
+        agent=manager_agent,
+        messages=[{"role": "user",
+                   "content": query}],
+
+    )
+    print(response.messages[-1]["content"])
