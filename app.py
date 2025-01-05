@@ -3,6 +3,8 @@ import requests
 from swarm import Swarm, Agent
 from dotenv import load_dotenv
 import subprocess
+import time
+import pyautogui
 
 load_dotenv()
 
@@ -25,6 +27,7 @@ APP_PATHS = {
     "notepad": "C:\\Windows\\System32\\notepad.exe",
     "whatsapp": "C:\\Program Files\\WindowsApps\\5319275A.WhatsAppDesktop_2.2450.6.0_x64__cv1g1gvanyjgm\\WhatsApp.exe",
     "appflowy": "C:\\Program Files (x86)\\AppFlowy\\AppFlowy.exe",
+    "discord": "C:\\Users\\ASUS\\AppData\\Local\\Discord\\Update.exe",
 }
 
 # Global arrays to store paths
@@ -99,6 +102,25 @@ def openApp(appName):
         return f"Failed to open {appName}: {str(e)}"
 
 
+def look_up_information(query):
+    print(f"Looking up information for {query}...")
+    try:
+
+        opera_path = "C:\\Users\\ASUS\\AppData\\Local\\Programs\\Opera GX\\opera.exe"
+        url = "https://www.perplexity.ai"
+        subprocess.Popen([opera_path, url])
+
+        # Wait for the page to load
+        time.sleep(3)
+
+        pyautogui.write(query)
+        pyautogui.press('enter')
+        print("Typed the query in Perplexity search bar.")
+
+    except Exception as e:
+        return f"Failed to open Perplexity: {str(e)}"
+
+
 def transfer_to_youtube_assistant():
     print("Transferring to YouTube Assistant...")
     return youtube_agent
@@ -119,12 +141,17 @@ def transfer_to_app_assistant():
     return app_agent
 
 
+def transfer_to_look_up_information_assistant():
+    print("Transferring to Look Up Information Assistant...")
+    return look_up_information_agent
+
+
 # Manager Agent
 manager_agent = Agent(
     name="manager Assistant",
     instructions="You help users by directing them to the right assistant.",
     functions=[transfer_to_weather_assistant,
-               transfer_to_folder_assistant, transfer_to_youtube_assistant, transfer_to_app_assistant],
+               transfer_to_folder_assistant, transfer_to_youtube_assistant, transfer_to_app_assistant, transfer_to_look_up_information_assistant],
 )
 
 # Weather Agent
@@ -168,6 +195,25 @@ app_agent = Agent(
     functions=[openApp],
 )
 
+
+look_up_information_agent = Agent(
+    name="Look Up Information Assistant",
+    instructions='''
+    You are the Look Up Information Assistant. Your role is to assist users by searching for information on Perplexity AI based on their queries.
+
+    - When a user requests information or asks a question related to a topic, use the `look_up_information` function to perform the search on Perplexity AI.
+    - Ensure that the search query is accurately captured and passed to the `look_up_information` function.
+    - After initiating the search, inform the user that the search has been performed.
+    - If the query is unclear or unsupported, respond with "I'm sorry, I couldn't understand your request. Please provide more details."
+    
+    Example Interactions:
+    - User: "Can you find information about machine learning ?"
+      Assistant: "Looking up information on Perplexity AI for 'machine learning'..."
+    - User: "Search for the latest news on artificial intelligence."
+      Assistant: "Looking up information on Perplexity AI for 'the latest news on artificial intelligence'..."
+    ''',
+    functions=[look_up_information],
+)
 
 while True:
 
